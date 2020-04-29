@@ -1,6 +1,9 @@
 package org.arbinka.factory.models;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import java.util.Date;
 
@@ -16,7 +19,6 @@ public class ElectronicDevice {
      */
     @Id
     @NotNull
-    @Column(name = "device_id")
     private String deviceId;
 
     /**
@@ -24,7 +26,6 @@ public class ElectronicDevice {
      */
     @NotNull
     @Temporal(TemporalType.DATE)
-    @Column(name = "date")
     private Date date;
 
     public ElectronicDevice() {

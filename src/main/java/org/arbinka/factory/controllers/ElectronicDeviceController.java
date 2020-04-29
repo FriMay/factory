@@ -1,21 +1,15 @@
 package org.arbinka.factory.controllers;
 
 
+import org.arbinka.factory.dto.AnswerTransfer;
 import org.arbinka.factory.dto.ElectronicDeviceTransfer;
 import org.arbinka.factory.exceptions.BadRequestException;
 import org.arbinka.factory.models.ElectronicDevice;
 import org.arbinka.factory.repositories.ElectronicDeviceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-
-import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * Rest controller отвечающий за логику взаимодействия с таблицей ElectronicDevice
@@ -32,9 +26,9 @@ public class ElectronicDeviceController {
      *
      * @return список электронных устрйоств
      */
-    @GetMapping(produces = APPLICATION_JSON_VALUE)
-    public List<ElectronicDevice> getAllDevices() {
-        return electronicDeviceRepository.findAll();
+    @GetMapping
+    public AnswerTransfer getAllDevices() {
+        return new AnswerTransfer(electronicDeviceRepository.findAll());
     }
 
     /**
@@ -43,9 +37,8 @@ public class ElectronicDeviceController {
      * @param electronicDeviceTransfer - DTO для добавления.
      * @return информацию о результате добавления нового устройства
      */
-    @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, Object>> addDevice(@RequestBody ElectronicDeviceTransfer electronicDeviceTransfer) {
-        Map<String, Object> result = new HashMap<>();
+    @PostMapping
+    public AnswerTransfer addDevice(@RequestBody ElectronicDeviceTransfer electronicDeviceTransfer) {
         String message = "Чтобы добавить новое электронное устройство необходимо ввести: ";
         boolean isSuccess = true;
 
@@ -75,8 +68,7 @@ public class ElectronicDeviceController {
                             electronicDeviceTransfer.getDate()
                     );
             electronicDeviceRepository.save(electronicDevice);
-            result.put("message", "Устройство успешно добавлено.");
-            return new ResponseEntity<>(result, HttpStatus.OK);
+            return new AnswerTransfer("Устройство успешно добавлено.");
         } else {
             message += ".";
             throw new BadRequestException(message);
@@ -90,19 +82,15 @@ public class ElectronicDeviceController {
      * @param deviceId - индефикатор удаляемого устройства
      * @return информация о результате удаления (успешно/нет)
      */
-    @DeleteMapping(value = "/{deviceId}", produces = APPLICATION_JSON_VALUE)
-    public ResponseEntity<Map<String, Object>> deleteDevice(@PathVariable("deviceId") String deviceId) {
-        Map<String, Object> result = new HashMap<>();
-
+    @DeleteMapping(value = "/{deviceId}")
+    public AnswerTransfer deleteDevice(@PathVariable("deviceId") String deviceId) {
         Optional<ElectronicDevice> electronicDevice = electronicDeviceRepository.findById(deviceId);
 
         if (electronicDevice.isPresent()) {
             electronicDeviceRepository
                     .delete(electronicDevice.get());
 
-            result.put("message", "Устройство успешно удалено.");
-
-            return new ResponseEntity<>(result, HttpStatus.OK);
+            return new AnswerTransfer("Устройство успешно удалено.");
         }
 
         throw new BadRequestException("Устройства с таким индефикатором(deviceId) не существует.");

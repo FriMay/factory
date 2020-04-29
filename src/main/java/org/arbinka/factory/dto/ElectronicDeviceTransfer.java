@@ -1,9 +1,8 @@
 package org.arbinka.factory.dto;
 
-import java.io.Serializable;
 import java.util.Date;
 
-public class ElectronicDeviceTransfer implements Serializable {
+public class ElectronicDeviceTransfer {
     private String deviceId;
     private Date date;
 
