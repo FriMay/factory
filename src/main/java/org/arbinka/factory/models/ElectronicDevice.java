@@ -12,15 +12,9 @@ import java.util.Date;
 public class ElectronicDevice {
 
     /**
-     * Индефикатор, генерируемый базой данных.
-     */
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
-    /**
      * Обязательное поле "Индефикатор устройства"
      */
+    @Id
     @NotNull
     @Column(name = "device_id")
     private String deviceId;
@@ -35,7 +29,6 @@ public class ElectronicDevice {
 
     public ElectronicDevice() {
     }
-
 
     public ElectronicDevice(String deviceId, Date date) {
         this.deviceId = deviceId;
@@ -58,11 +51,4 @@ public class ElectronicDevice {
         this.date = date;
     }
 
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
 }

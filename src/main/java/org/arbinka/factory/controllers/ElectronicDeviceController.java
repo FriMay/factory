@@ -2,6 +2,7 @@ package org.arbinka.factory.controllers;
 
 
 import org.arbinka.factory.dto.ElectronicDeviceTransfer;
+import org.arbinka.factory.exceptions.BadRequestException;
 import org.arbinka.factory.models.ElectronicDevice;
 import org.arbinka.factory.repositories.ElectronicDeviceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,15 +10,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.ws.rs.core.MediaType;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 /**
  * Rest controller отвечающий за логику взаимодействия с таблицей ElectronicDevice
  */
-@RequestMapping("electronicDevice")
+@RequestMapping("devices")
 @RestController
 public class ElectronicDeviceController {
 
@@ -29,7 +32,7 @@ public class ElectronicDeviceController {
      *
      * @return список электронных устрйоств
      */
-    @GetMapping(value = "/getAllDevices", produces = MediaType.APPLICATION_JSON)
+    @GetMapping(produces = APPLICATION_JSON_VALUE)
     public List<ElectronicDevice> getAllDevices() {
         return electronicDeviceRepository.findAll();
     }
@@ -40,7 +43,7 @@ public class ElectronicDeviceController {
      * @param electronicDeviceTransfer - DTO для добавления.
      * @return информацию о результате добавления нового устройства
      */
-    @PostMapping(value = "/addDevice", consumes = MediaType.APPLICATION_JSON, produces = MediaType.APPLICATION_JSON)
+    @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> addDevice(@RequestBody ElectronicDeviceTransfer electronicDeviceTransfer) {
         Map<String, Object> result = new HashMap<>();
         String message = "Чтобы добавить новое электронное устройство необходимо ввести: ";
@@ -50,9 +53,8 @@ public class ElectronicDeviceController {
             message += "его индефикатор(deviceId)";
             isSuccess = false;
         } else {
-            if (electronicDeviceRepository.findByDeviceId(electronicDeviceTransfer.getDeviceId()) != null) {
-                result.put("message", "Устройство с таким уже индефикатором существует.");
-                return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+            if (electronicDeviceRepository.findById(electronicDeviceTransfer.getDeviceId()).isPresent()) {
+                throw new BadRequestException("Устройство с таким индефикатором уже существует.");
             }
         }
 
@@ -77,8 +79,7 @@ public class ElectronicDeviceController {
             return new ResponseEntity<>(result, HttpStatus.OK);
         } else {
             message += ".";
-            result.put("message", message);
-            return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+            throw new BadRequestException(message);
         }
 
     }
@@ -89,25 +90,22 @@ public class ElectronicDeviceController {
      * @param deviceId - индефикатор удаляемого устройства
      * @return информация о результате удаления (успешно/нет)
      */
-    @DeleteMapping(value = "/deleteDevice/{deviceId}", produces = MediaType.APPLICATION_JSON)
+    @DeleteMapping(value = "/{deviceId}", produces = APPLICATION_JSON_VALUE)
     public ResponseEntity<Map<String, Object>> deleteDevice(@PathVariable("deviceId") String deviceId) {
         Map<String, Object> result = new HashMap<>();
 
-        ElectronicDevice electronicDevice = electronicDeviceRepository.findByDeviceId(deviceId);
+        Optional<ElectronicDevice> electronicDevice = electronicDeviceRepository.findById(deviceId);
 
-        if (electronicDevice != null) {
+        if (electronicDevice.isPresent()) {
             electronicDeviceRepository
-                    .delete(electronicDevice);
+                    .delete(electronicDevice.get());
 
             result.put("message", "Устройство успешно удалено.");
 
             return new ResponseEntity<>(result, HttpStatus.OK);
-
         }
 
-        result.put("message", "Устройства с таким индефикатором(deviceId) не существует.");
-        return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
-
+        throw new BadRequestException("Устройства с таким индефикатором(deviceId) не существует.");
 
     }
 }
